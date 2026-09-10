@@ -5,8 +5,10 @@ import { z } from 'zod'
 import { requireAuth } from '../services/authService'
 import { BATTLE_PASS_REWARDS, SHOP_ITEMS } from '../services/gameService'
 import { createCheckoutSession, verifyAndHandleWebhook } from '../services/paymentService'
+import { shopRateLimiter } from '../services/rateLimit'
 
 const router = Router()
+router.use(shopRateLimiter)
 
 const checkoutSchema = z.object({
   itemId: z.string().min(1),

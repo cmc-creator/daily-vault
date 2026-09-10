@@ -3,8 +3,10 @@ import { z } from 'zod'
 
 import { PlayerModel } from '../models/Player'
 import { hashPassword, signToken, verifyPassword } from '../services/authService'
+import { authRateLimiter } from '../services/rateLimit'
 
 const router = Router()
+router.use(authRateLimiter)
 
 const authSchema = z.object({
   username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_-]+$/),

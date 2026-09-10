@@ -1,4 +1,4 @@
-import { randomBytes, scrypt as baseScrypt } from 'crypto'
+import { randomBytes, scrypt as baseScrypt, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
 
 import type { NextFunction, Request, Response } from 'express'
@@ -35,7 +35,8 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, passwordHash: string) {
   const [salt, storedHash] = passwordHash.split(':')
   const derivedKey = (await scrypt(password, salt, 64)) as Buffer
-  return storedHash === derivedKey.toString('hex')
+  const storedBuffer = Buffer.from(storedHash, 'hex')
+  return storedBuffer.length === derivedKey.length && timingSafeEqual(storedBuffer, derivedKey)
 }
 
 export function signToken(playerId: string, username: string) {

@@ -4,9 +4,11 @@ import { z } from 'zod'
 import { RunModel } from '../models/Run'
 import { requireAuth } from '../services/authService'
 import { applyCardToRun, createRunForPlayer, getDailyChallenge } from '../services/gameService'
+import { runRateLimiter } from '../services/rateLimit'
 import { broadcastLeaderboardUpdate } from '../websocket/socket'
 
 const router = Router()
+router.use(runRateLimiter)
 
 const actionSchema = z.object({
   cardId: z.string().min(1),

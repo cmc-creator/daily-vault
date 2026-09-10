@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 
+import { PurchaseModel } from '../models/Purchase'
 import { PlayerModel } from '../models/Player'
 import { SHOP_ITEMS } from './gameService'
 
@@ -60,7 +61,23 @@ export async function createCheckoutSession(playerId: string, itemId: string) {
   }
 }
 
-export async function handleCheckoutCompleted(playerId: string, itemId: string) {
+export async function handleCheckoutCompleted(playerId: string, itemId: string, checkoutSessionId: string) {
+  const result = await PurchaseModel.updateOne(
+    { checkoutSessionId },
+    {
+      $setOnInsert: {
+        player: playerId,
+        itemId,
+        checkoutSessionId,
+      },
+    },
+    { upsert: true },
+  )
+
+  if (!result.upsertedCount) {
+    return
+  }
+
   await grantShopReward(playerId, itemId)
 }
 
@@ -77,8 +94,8 @@ export async function verifyAndHandleWebhook(signature: string | undefined, body
     const session = event.data.object
     const playerId = session.metadata?.playerId
     const itemId = session.metadata?.itemId
-    if (playerId && itemId) {
-      await handleCheckoutCompleted(playerId, itemId)
+    if (playerId && itemId && session.id) {
+      await handleCheckoutCompleted(playerId, itemId, session.id)
     }
   }
 

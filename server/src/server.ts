@@ -11,12 +11,13 @@ import { leaderboardRouter } from './routes/leaderboard'
 import { playersRouter } from './routes/players'
 import { runsRouter } from './routes/runs'
 import { handleShopWebhook, shopRouter } from './routes/shop'
+import { shopRateLimiter } from './services/rateLimit'
 import { createSocketServer } from './websocket/socket'
 
 const app = express()
 const server = http.createServer(app)
 
-app.post('/api/shop/webhook', express.raw({ type: 'application/json' }), handleShopWebhook)
+app.post('/api/shop/webhook', shopRateLimiter, express.raw({ type: 'application/json' }), handleShopWebhook)
 
 app.use(
   cors({

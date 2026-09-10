@@ -52,13 +52,13 @@ Services:
 ### Option 2: Run services manually
 
 ```bash
-cd /home/runner/work/daily-vault/daily-vault/server
+cd server
 npm install
 npm run dev
 ```
 
 ```bash
-cd /home/runner/work/daily-vault/daily-vault/client
+cd client
 npm install
 npm run dev
 ```

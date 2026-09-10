@@ -3,9 +3,11 @@ import { z } from 'zod'
 
 import { PlayerModel } from '../models/Player'
 import { requireAuth } from '../services/authService'
+import { playerRateLimiter } from '../services/rateLimit'
 import { toPlayerSummary } from './auth'
 
 const router = Router()
+router.use(playerRateLimiter)
 
 const profileUpdateSchema = z.object({
   equippedCosmetic: z.string().min(1),
