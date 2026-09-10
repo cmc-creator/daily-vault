@@ -65,13 +65,11 @@ async function bootstrap() {
   await connectToDatabase()
   const port = Number(process.env.PORT ?? 4000)
   server.listen(port, () => {
-    // eslint-disable-next-line no-console
     console.log(`Daily Vault server listening on ${port}`)
   })
 }
 
 bootstrap().catch((error) => {
-  // eslint-disable-next-line no-console
   console.error(error)
   process.exit(1)
 })
