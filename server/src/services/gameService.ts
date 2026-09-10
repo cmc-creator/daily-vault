@@ -130,15 +130,30 @@ export async function createRunForPlayer(playerId: string) {
     return { run: existingRun, created: false }
   }
 
+  let created = true
   const run = await RunModel.create({
     player: playerId,
     dateKey: challenge.dateKey,
     seed: challenge.seed,
     encounters: buildDailyEncounters(challenge.seed),
     history: [`Run started for vault seed ${challenge.seed}.`],
+  }).catch(async (error: { code?: number }) => {
+    if (error.code === 11000) {
+      const concurrentRun = await RunModel.findOne({
+        player: playerId,
+        dateKey: challenge.dateKey,
+      }).sort({ createdAt: 1 })
+
+      if (concurrentRun) {
+        created = false
+        return concurrentRun
+      }
+    }
+
+    throw error
   })
 
-  return { run, created: true }
+  return { run, created }
 }
 
 function pushHistory(run: HydratedDocument<any>, message: string) {

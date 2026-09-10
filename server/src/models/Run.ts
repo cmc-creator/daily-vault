@@ -32,4 +32,6 @@ const RunSchema = new Schema(
   { timestamps: true },
 )
 
+RunSchema.index({ player: 1, dateKey: 1 }, { unique: true })
+
 export const RunModel = models.Run ?? model('Run', RunSchema)

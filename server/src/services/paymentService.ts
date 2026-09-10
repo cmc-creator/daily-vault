@@ -28,8 +28,11 @@ export async function createCheckoutSession(playerId: string, itemId: string) {
     if (process.env.ALLOW_DEMO_CHECKOUT !== 'true') {
       throw new Error('Stripe checkout is not configured for this environment.')
     }
-    await grantShopReward(playerId, itemId)
-    return { mode: 'demo' as const, message: `${item.name} granted in local demo mode.` }
+    const granted = await handleCheckoutCompleted(playerId, itemId, `demo:${playerId}:${itemId}`)
+    return {
+      mode: 'demo' as const,
+      message: granted ? `${item.name} granted in local demo mode.` : `${item.name} already unlocked in demo mode.`,
+    }
   }
 
   const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
@@ -70,7 +73,7 @@ export async function handleCheckoutCompleted(playerId: string, itemId: string, 
     if (String(existingPurchase.player) !== playerId || existingPurchase.itemId !== itemId) {
       throw new Error('Checkout session metadata mismatch.')
     }
-    return
+    return false
   }
 
   try {
@@ -85,12 +88,13 @@ export async function handleCheckoutCompleted(playerId: string, itemId: string, 
       if (String(existing.player) !== playerId || existing.itemId !== itemId) {
         throw new Error('Checkout session metadata mismatch.')
       }
-      return
+      return false
     }
     throw error
   }
 
   await grantShopReward(playerId, itemId)
+  return true
 }
 
 export async function verifyAndHandleWebhook(signature: string | undefined, body: Buffer) {
