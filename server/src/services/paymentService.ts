@@ -25,6 +25,9 @@ export async function createCheckoutSession(playerId: string, itemId: string) {
 
   const stripe = getStripeClient()
   if (!stripe) {
+    if (process.env.ALLOW_DEMO_CHECKOUT !== 'true') {
+      throw new Error('Stripe checkout is not configured for this environment.')
+    }
     await grantShopReward(playerId, itemId)
     return { mode: 'demo' as const, message: `${item.name} granted in local demo mode.` }
   }
@@ -62,20 +65,29 @@ export async function createCheckoutSession(playerId: string, itemId: string) {
 }
 
 export async function handleCheckoutCompleted(playerId: string, itemId: string, checkoutSessionId: string) {
-  const result = await PurchaseModel.updateOne(
-    { checkoutSessionId },
-    {
-      $setOnInsert: {
-        player: playerId,
-        itemId,
-        checkoutSessionId,
-      },
-    },
-    { upsert: true },
-  )
-
-  if (!result.upsertedCount) {
+  const existingPurchase = await PurchaseModel.findOne({ checkoutSessionId }).lean()
+  if (existingPurchase) {
+    if (String(existingPurchase.player) !== playerId || existingPurchase.itemId !== itemId) {
+      throw new Error('Checkout session metadata mismatch.')
+    }
     return
+  }
+
+  try {
+    await PurchaseModel.create({
+      player: playerId,
+      itemId,
+      checkoutSessionId,
+    })
+  } catch (error) {
+    const existing = await PurchaseModel.findOne({ checkoutSessionId }).lean()
+    if (existing) {
+      if (String(existing.player) !== playerId || existing.itemId !== itemId) {
+        throw new Error('Checkout session metadata mismatch.')
+      }
+      return
+    }
+    throw error
   }
 
   await grantShopReward(playerId, itemId)

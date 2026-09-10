@@ -102,8 +102,9 @@ export function getDailySeed(date = new Date()): number {
 
 export function getDailyChallenge() {
   const seed = getDailySeed()
+  const dateKey = String(seed)
   const previewEnemies = buildDailyEncounters(seed).map((enemy) => enemy.name)
-  return { dateKey: String(seed), seed, previewEnemies }
+  return { dateKey, seed, previewEnemies }
 }
 
 function buildDailyEncounters(seed: number): EncounterState[] {
@@ -120,6 +121,15 @@ function buildDailyEncounters(seed: number): EncounterState[] {
 
 export async function createRunForPlayer(playerId: string) {
   const challenge = getDailyChallenge()
+  const existingRun = await RunModel.findOne({
+    player: playerId,
+    dateKey: challenge.dateKey,
+  }).sort({ createdAt: 1 })
+
+  if (existingRun) {
+    return { run: existingRun, created: false }
+  }
+
   const run = await RunModel.create({
     player: playerId,
     dateKey: challenge.dateKey,
@@ -128,7 +138,7 @@ export async function createRunForPlayer(playerId: string) {
     history: [`Run started for vault seed ${challenge.seed}.`],
   })
 
-  return run
+  return { run, created: true }
 }
 
 function pushHistory(run: HydratedDocument<any>, message: string) {

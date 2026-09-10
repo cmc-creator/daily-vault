@@ -1,5 +1,7 @@
 services:
   mongo:
+    container_name: mongo
+    hostname: mongo
     image: mongo:7
     restart: unless-stopped
     ports:
@@ -8,23 +10,28 @@ services:
       - mongo_data:/data/db
 
   server:
+    container_name: server
+    hostname: server
     build:
       context: ./server
       target: development
     env_file:
       - ./.env.example
     environment:
-      MONGODB_URI: mongodb://host.docker.internal:27017/daily-vault
+      MONGODB_URI: mongodb://mongo:27017/daily-vault
       CLIENT_URL: http://localhost:5173
       FRONTEND_URL: http://localhost:5173
+      ALLOW_DEMO_CHECKOUT: 'true'
     depends_on:
       - mongo
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - 'mongo:host-gateway'
     ports:
       - '4000:4000'
 
   client:
+    container_name: client
+    hostname: client
     build:
       context: ./client
       target: development
@@ -33,9 +40,9 @@ services:
     environment:
       VITE_API_BASE_URL: /api
       VITE_SOCKET_PATH: /socket.io
-      VITE_DEV_PROXY_TARGET: http://host.docker.internal:4000
+      VITE_DEV_PROXY_TARGET: http://server:4000
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - 'server:host-gateway'
     ports:
       - '5173:5173'
 

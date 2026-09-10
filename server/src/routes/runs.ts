@@ -35,8 +35,8 @@ router.get('/daily', async (_request, response) => {
 })
 
 router.post('/', requireAuth, async (request, response) => {
-  const run = await createRunForPlayer(request.auth!.playerId)
-  response.status(201).json(toRunResponse(run))
+  const { run, created } = await createRunForPlayer(request.auth!.playerId)
+  response.status(created ? 201 : 200).json(toRunResponse(run))
 })
 
 router.get('/:runId', requireAuth, async (request, response) => {

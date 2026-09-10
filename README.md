@@ -29,6 +29,7 @@ Copy `.env.example` to `.env` for local overrides.
 | `JWT_SECRET` | JWT signing secret |
 | `STRIPE_SECRET_KEY` | Stripe secret key for real checkout sessions |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `ALLOW_DEMO_CHECKOUT` | Enables local demo purchase fulfillment when Stripe is absent |
 | `FRONTEND_URL` | Redirect base URL for Stripe success/cancel URLs |
 | `VITE_API_BASE_URL` | Client API base URL |
 | `VITE_SOCKET_PATH` | Client Socket.IO path |
@@ -90,6 +91,7 @@ npm run dev
 ## Stripe Integration
 
 - Without Stripe keys, checkout falls back to a safe **demo purchase** mode for local development.
+- Set `ALLOW_DEMO_CHECKOUT=true` only in local/demo environments where free fulfillment is acceptable.
 - With `STRIPE_SECRET_KEY` configured, the server creates a real Stripe Checkout session.
 - With `STRIPE_WEBHOOK_SECRET`, configure your Stripe webhook endpoint to:
 
@@ -131,6 +133,7 @@ npm run build
 
 - Set `CLIENT_URL` to the deployed Vercel URL.
 - Set `FRONTEND_URL` to the same Vercel URL for Stripe redirects.
+- Keep `ALLOW_DEMO_CHECKOUT=false` in production.
 - Use a production MongoDB instance.
 - Configure the Stripe webhook endpoint after the first deployment.
 

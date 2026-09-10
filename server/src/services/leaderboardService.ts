@@ -1,7 +1,8 @@
 import { RunModel } from '../models/Run'
+import { getDailySeed } from './gameService'
 
 export async function getLeaderboard(limit = 10) {
-  const runs = await RunModel.find({ status: 'completed' })
+  const runs = await RunModel.find({ status: 'completed', dateKey: String(getDailySeed()) })
     .sort({ score: -1, completedAt: 1 })
     .limit(limit)
     .populate('player', 'username')
