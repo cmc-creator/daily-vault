@@ -1,33 +1,50 @@
-version: '3.8'
-
 services:
-  mongodb:
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_DATABASE: daily-vault
+  mongo:
+    container_name: mongo
+    hostname: mongo
+    image: mongo:7
+    restart: unless-stopped
     ports:
       - '27017:27017'
     volumes:
       - mongo_data:/data/db
 
   server:
-    build: ./server
-    ports:
-      - '3001:3001'
+    container_name: server
+    hostname: server
+    build:
+      context: ./server
+      target: development
+    env_file:
+      - ./.env.example
     environment:
-      MONGODB_URI: mongodb://mongodb:27017/daily-vault
-      JWT_SECRET: dev-secret-key
-      NODE_ENV: development
+      MONGODB_URI: mongodb://mongo:27017/daily-vault
+      CLIENT_URL: http://localhost:5173
       FRONTEND_URL: http://localhost:5173
+      ALLOW_DEMO_CHECKOUT: 'true'
     depends_on:
-      - mongodb
+      - mongo
+    extra_hosts:
+      - 'mongo:host-gateway'
+    ports:
+      - '4000:4000'
 
   client:
-    build: ./client
+    container_name: client
+    hostname: client
+    build:
+      context: ./client
+      target: development
+    depends_on:
+      - server
+    environment:
+      VITE_API_BASE_URL: /api
+      VITE_SOCKET_PATH: /socket.io
+      VITE_DEV_PROXY_TARGET: http://server:4000
+    extra_hosts:
+      - 'server:host-gateway'
     ports:
       - '5173:5173'
-    environment:
-      VITE_API_URL: http://localhost:3001
 
 volumes:
   mongo_data:

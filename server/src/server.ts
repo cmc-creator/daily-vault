@@ -1,76 +1,75 @@
-import express from 'express';
-import cors from 'cors';
-import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import dotenv from 'dotenv';
+import 'dotenv/config'
 
-dotenv.config();
+import http from 'http'
 
-const app = express();
-const httpServer = createServer(app);
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST']
+import cors from 'cors'
+import express from 'express'
+import mongoose from 'mongoose'
+
+import { authRouter } from './routes/auth'
+import { leaderboardRouter } from './routes/leaderboard'
+import { playersRouter } from './routes/players'
+import { runsRouter } from './routes/runs'
+import { handleShopWebhook, shopRouter } from './routes/shop'
+import { shopRateLimiter } from './services/rateLimit'
+import { createSocketServer } from './websocket/socket'
+
+const app = express()
+const server = http.createServer(app)
+
+app.post('/api/shop/webhook', shopRateLimiter, express.raw({ type: 'application/json' }), handleShopWebhook)
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    credentials: true,
+  }),
+)
+app.use(express.json())
+
+app.get('/api/health', (_request, response) => {
+  response.json({ ok: true })
+})
+
+app.use('/api/auth', authRouter)
+app.use('/api/players', playersRouter)
+app.use('/api/runs', runsRouter)
+app.use('/api/leaderboard', leaderboardRouter)
+app.use('/api/shop', shopRouter)
+
+createSocketServer(server)
+
+async function connectToDatabase() {
+  const mongoUri = process.env.MONGODB_URI
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is required.')
   }
-});
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
+    try {
+      await mongoose.connect(mongoUri)
+      return
+    } catch (error) {
+      if (attempt === 10) {
+        throw error
+      }
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Daily Vault API is running!' });
-});
+      await new Promise((resolve) => {
+        setTimeout(resolve, 2000)
+      })
+    }
+  }
+}
 
-// API Routes
-app.get('/api', (req, res) => {
-  res.json({ message: 'Daily Vault API v1.0' });
-});
+async function bootstrap() {
+  await connectToDatabase()
+  const port = Number(process.env.PORT ?? 4000)
+  server.listen(port, () => {
+    console.log(`Daily Vault server listening on ${port}`)
+  })
+}
 
-// Auth endpoints
-app.post('/api/auth/register', (req, res) => {
-  res.json({ message: 'Register endpoint', status: 'ok' });
-});
-
-app.post('/api/auth/login', (req, res) => {
-  res.json({ message: 'Login endpoint', status: 'ok' });
-});
-
-// Leaderboard endpoints
-app.get('/api/leaderboard/daily', (req, res) => {
-  res.json({ 
-    leaderboard: [
-      { rank: 1, username: 'Player1', score: 5000 },
-      { rank: 2, username: 'Player2', score: 4500 },
-      { rank: 3, username: 'Player3', score: 4000 }
-    ]
-  });
-});
-
-// Shop endpoints
-app.get('/api/shop/cosmetics', (req, res) => {
-  res.json({ 
-    cosmetics: [
-      { id: 1, name: 'Purple Card Back', price: 500 },
-      { id: 2, name: 'Gold Avatar', price: 1000 }
-    ]
-  });
-});
-
-// WebSocket connection
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-  
-  socket.emit('welcome', { message: 'Welcome to Daily Vault!' });
-  
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-});
-
-const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`Daily Vault API running on port ${PORT}`);
-});
+bootstrap().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})
