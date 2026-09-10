@@ -33,6 +33,7 @@ Copy `.env.example` to `.env` for local overrides.
 | `VITE_API_BASE_URL` | Client API base URL |
 | `VITE_SOCKET_PATH` | Client Socket.IO path |
 | `VITE_SOCKET_URL` | Optional absolute Socket.IO server URL for split deployments |
+| `VITE_DEV_PROXY_TARGET` | Optional Vite dev proxy target for containerized local dev |
 
 ## Local Development
 
