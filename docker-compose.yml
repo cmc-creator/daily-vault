@@ -1,0 +1,47 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build:
+      context: /home/runner/work/daily-vault/daily-vault/server
+      target: development
+    env_file:
+      - /home/runner/work/daily-vault/daily-vault/.env.example
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/daily-vault
+      CLIENT_URL: http://localhost:5173
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      - mongo
+    ports:
+      - '4000:4000'
+    volumes:
+      - /home/runner/work/daily-vault/daily-vault/server:/app
+      - server_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev"
+
+  client:
+    image: node:22-alpine
+    working_dir: /app
+    depends_on:
+      - server
+    environment:
+      VITE_API_BASE_URL: /api
+      VITE_SOCKET_PATH: /socket.io
+    ports:
+      - '5173:5173'
+    volumes:
+      - /home/runner/work/daily-vault/daily-vault/client:/app
+      - client_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+volumes:
+  mongo_data:
+  server_node_modules:
+  client_node_modules:

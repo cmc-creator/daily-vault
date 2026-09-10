@@ -1,0 +1,237 @@
+.app-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(96, 76, 208, 0.25), transparent 28%),
+    linear-gradient(180deg, #0f1020 0%, #171b2f 100%);
+  color: #eff1ff;
+}
+
+.topbar,
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(7, 10, 20, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  font-size: 0.95rem;
+}
+
+.content {
+  width: min(1180px, 100% - 2rem);
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+}
+
+.nav-tabs,
+.segmented,
+.row,
+.encounter-track,
+.card-grid {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.nav-tabs,
+.segmented {
+  flex-wrap: wrap;
+}
+
+.nav-tabs button,
+.segmented button,
+.encounter-pill,
+.game-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+}
+
+.nav-tabs .active,
+.segmented .active,
+.active-pill,
+.primary-button,
+.game-card:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8f7dff, #5bd2ff);
+  color: #060812;
+  border-color: transparent;
+}
+
+.panel,
+.card {
+  background: rgba(11, 15, 28, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 20px 45px rgba(3, 5, 10, 0.3);
+}
+
+.panel {
+  padding: 1.5rem;
+}
+
+.card {
+  padding: 1.25rem;
+}
+
+.hero-panel {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.two-up {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.three-up {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.lead,
+.muted {
+  color: #c4cae9;
+}
+
+.eyebrow,
+.pill,
+.reward-text {
+  color: #89f2ff;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.field input {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 0.85rem 1rem;
+}
+
+.primary-button {
+  width: fit-content;
+  border: none;
+  border-radius: 14px;
+  padding: 0.85rem 1.2rem;
+  font-weight: 700;
+}
+
+.row.between {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+.gap-lg {
+  gap: 1rem;
+}
+
+.stat-card p,
+.card p,
+.clean-list {
+  margin: 0.35rem 0;
+}
+
+.clean-list {
+  list-style: none;
+  padding: 0;
+}
+
+.log-list {
+  max-height: 220px;
+  overflow: auto;
+}
+
+.card-grid {
+  flex-wrap: wrap;
+}
+
+.game-card {
+  min-width: 120px;
+  text-transform: capitalize;
+}
+
+.encounter-track {
+  flex-wrap: wrap;
+}
+
+.encounter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.encounter-pill.active {
+  border-color: #89f2ff;
+}
+
+.encounter-pill.defeated {
+  opacity: 0.7;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.progress-shell {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #8f7dff, #5bd2ff);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .topbar,
+  .status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
