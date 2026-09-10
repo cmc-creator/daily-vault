@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_DATABASE: daily-vault
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    ports:
+      - '3001:3001'
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/daily-vault
+      JWT_SECRET: dev-secret-key
+      NODE_ENV: development
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      - mongodb
+
+  client:
+    build: ./client
+    ports:
+      - '5173:5173'
+    environment:
+      VITE_API_URL: http://localhost:3001
+
+volumes:
+  mongo_data:
