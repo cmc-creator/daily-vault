@@ -73,27 +73,44 @@ export async function handleCheckoutCompleted(playerId: string, itemId: string, 
     if (String(existingPurchase.player) !== playerId || existingPurchase.itemId !== itemId) {
       throw new Error('Checkout session metadata mismatch.')
     }
-    return false
+    if (existingPurchase.status === 'completed') {
+      return false
+    }
   }
 
+  let purchase =
+    existingPurchase ??
+    null
+
   try {
-    await PurchaseModel.create({
-      player: playerId,
-      itemId,
-      checkoutSessionId,
-    })
+    if (!purchase) {
+      purchase = await PurchaseModel.create({
+        player: playerId,
+        itemId,
+        checkoutSessionId,
+        status: 'pending',
+      })
+    }
   } catch (error) {
     const existing = await PurchaseModel.findOne({ checkoutSessionId }).lean()
     if (existing) {
       if (String(existing.player) !== playerId || existing.itemId !== itemId) {
         throw new Error('Checkout session metadata mismatch.')
       }
-      return false
+      if (existing.status === 'completed') {
+        return false
+      }
+      purchase = existing
+    } else {
+      throw error
     }
-    throw error
   }
 
-  await grantShopReward(playerId, itemId)
+  await grantShopReward(String(purchase.player), purchase.itemId)
+  await PurchaseModel.updateOne(
+    { checkoutSessionId, status: 'pending' },
+    { $set: { status: 'completed' } },
+  )
   return true
 }
 

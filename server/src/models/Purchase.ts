@@ -6,6 +6,7 @@ const PurchaseSchema = new Schema(
     itemId: { type: String, required: true },
     checkoutSessionId: { type: String, required: true, unique: true, index: true },
     provider: { type: String, default: 'stripe' },
+    status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
   },
   { timestamps: true },
 )

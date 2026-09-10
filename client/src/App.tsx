@@ -136,8 +136,10 @@ function App() {
       if (response.checkoutUrl) {
         window.open(response.checkoutUrl, '_blank', 'noopener,noreferrer')
       }
-      const profile = await apiClient.getProfile(token)
-      setPlayer(profile)
+      if (response.mode === 'demo') {
+        const profile = await apiClient.getProfile(token)
+        setPlayer(profile)
+      }
     } catch (error) {
       setMessage((error as Error).message)
     } finally {
