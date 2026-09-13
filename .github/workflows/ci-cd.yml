@@ -41,11 +41,41 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-  deploy-client:
-    if: github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != '' && secrets.VERCEL_PROJECT_ID != '' && secrets.VERCEL_ORG_ID != ''
+  deployment-config:
+    if: github.ref == 'refs/heads/main'
     needs:
       - build-client
       - build-server
+    runs-on: ubuntu-latest
+    outputs:
+      has-vercel: ${{ steps.vercel.outputs.configured }}
+      has-railway: ${{ steps.railway.outputs.configured }}
+    steps:
+      - id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_PROJECT_ID" ] && [ -n "$VERCEL_ORG_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+      - id: railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-client:
+    if: needs.deployment-config.outputs.has-vercel == 'true'
+    needs:
+      - deployment-config
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -64,10 +94,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   deploy-server:
-    if: github.ref == 'refs/heads/main' && secrets.RAILWAY_TOKEN != ''
+    if: needs.deployment-config.outputs.has-railway == 'true'
     needs:
-      - build-client
-      - build-server
+      - deployment-config
     runs-on: ubuntu-latest
     defaults:
       run:
