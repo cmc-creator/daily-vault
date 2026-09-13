@@ -41,15 +41,15 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-  deployment-config:
+  deployment_config:
     if: github.ref == 'refs/heads/main'
     needs:
       - build-client
       - build-server
     runs-on: ubuntu-latest
     outputs:
-      has-vercel: ${{ steps.vercel.outputs.configured }}
-      has-railway: ${{ steps.railway.outputs.configured }}
+      has_vercel: ${{ steps.vercel.outputs.configured }}
+      has_railway: ${{ steps.railway.outputs.configured }}
     steps:
       - id: vercel
         env:
@@ -73,9 +73,9 @@ jobs:
           fi
 
   deploy-client:
-    if: needs.deployment-config.outputs.has-vercel == 'true'
+    if: needs.deployment_config.outputs.has_vercel == 'true'
     needs:
-      - deployment-config
+      - deployment_config
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -94,9 +94,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   deploy-server:
-    if: needs.deployment-config.outputs.has-railway == 'true'
+    if: needs.deployment_config.outputs.has_railway == 'true'
     needs:
-      - deployment-config
+      - deployment_config
     runs-on: ubuntu-latest
     defaults:
       run:
